@@ -15,9 +15,11 @@
       "ES5",
       "ES6",
       "ES7"
-    ]
+    ],
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true
   },
   "include": [
     "**/*.ts"
-  ]
+, "__tests__/sim.jts"  ]
 }

@@ -1,22 +1,29 @@
 {
-	"name": "obsidian-sample-plugin",
+	"name": "obsidian-sync-remotestorage",
 	"version": "0.12.0",
-	"description": "This is a sample plugin for Obsidian (https://obsidian.md)",
+	"description": "Save your obsidian vault in RemoteStorage",
 	"main": "main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
-		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production"
+		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+		"test": "jest --coverage",
+		"test:watch": "jest --watch"
 	},
-	"keywords": [],
-	"author": "",
+	"keywords": ["obsidianmd","plugin","remotestorage","sync"],
+	"author": "cramk",
 	"license": "MIT",
 	"devDependencies": {
+		"@types/jest": "^27.4.0",
 		"@types/node": "^16.11.6",
 		"@typescript-eslint/eslint-plugin": "^5.2.0",
 		"@typescript-eslint/parser": "^5.2.0",
 		"builtin-modules": "^3.2.0",
 		"esbuild": "0.13.12",
+		"jest": "^27.4.7",
 		"obsidian": "^0.12.17",
+		"obsimian": "^0.4.0",
+		"ts-jest": "^27.1.3",
+		"ts-node": "^10.4.0",
 		"tslib": "2.3.1",
 		"typescript": "4.4.4"
 	}

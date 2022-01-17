@@ -1,21 +1,96 @@
 import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { Logger, setLogger } from "./logger";
+import {
+	LOG_LEVEL
+
+} from "./types";
+import * as fileScanner from "./fileScanner";
 
 // Remember to rename these classes and interfaces!
 
 interface MyPluginSettings {
 	mySetting: string;
+	showVerboseLog: boolean;
+	lessInformationInLog: boolean;
 }
 
 const DEFAULT_SETTINGS: MyPluginSettings = {
-	mySetting: 'default'
+	mySetting: 'default',
+	showVerboseLog: true,
+	lessInformationInLog:false
 }
 
 export default class MyPlugin extends Plugin {
+	logMessage: string[] = [];
 	settings: MyPluginSettings;
+	addLogHook: () => void = null
+	notifies: { [key: string]: { notice: Notice; timer: NodeJS.Timeout; count: number } } = {};
+	async addLog(message: any, level: LOG_LEVEL = LOG_LEVEL.INFO) {
+		if (level < LOG_LEVEL.INFO && this.settings && this.settings.lessInformationInLog) {
+				return;
+		}
+		if (this.settings && !this.settings.showVerboseLog && level == LOG_LEVEL.VERBOSE) {
+				return;
+		}
+		const valutName = this.app.vault.getName();
+		const timestamp = new Date().toLocaleString();
+		const messagecontent = typeof message == "string" ? message : message instanceof Error ? `${message.name}:${message.message}` : JSON.stringify(message, null, 2);
+		const newmessage = timestamp + "->" + messagecontent;
+
+		this.logMessage = [].concat(this.logMessage).concat([newmessage]).slice(-100);
+		console.log(valutName + ":" + newmessage);
+		// if (this.statusBar2 != null) {
+		//     this.statusBar2.setText(newmessage.substring(0, 60));
+		// }
+
+		if (level >= LOG_LEVEL.NOTICE) {
+				if (messagecontent in this.notifies) {
+						clearTimeout(this.notifies[messagecontent].timer);
+						this.notifies[messagecontent].count++;
+						this.notifies[messagecontent].notice.setMessage(`(${this.notifies[messagecontent].count}):${messagecontent}`);
+						this.notifies[messagecontent].timer = setTimeout(() => {
+								const notify = this.notifies[messagecontent].notice;
+								delete this.notifies[messagecontent];
+								try {
+										notify.hide();
+								} catch (ex) {
+										// NO OP
+								}
+						}, 5000);
+				} else {
+						const notify = new Notice(messagecontent, 0);
+						this.notifies[messagecontent] = {
+								count: 0,
+								notice: notify,
+								timer: setTimeout(() => {
+										delete this.notifies[messagecontent];
+										notify.hide();
+								}, 5000),
+						};
+				}
+		}
+		if (this.addLogHook != null) this.addLogHook();
+	}
 
 	async onload() {
+		
+		setLogger(this.addLog.bind(this)); 
+		Logger("loading plugin");
+		// eslint-disable-next-line no-debugger
+		debugger;
 		await this.loadSettings();
 
+
+		//Try to gather list of all documents
+		const files = fileScanner.scanFiles(this.app);
+		console.log("FILES", files)
+		new Notice(`${files.length} Files Found`)
+
+
+
+
+
+		//---------------------
 		// This creates an icon in the left ribbon.
 		const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
 			// Called when the user clicks the icon.
